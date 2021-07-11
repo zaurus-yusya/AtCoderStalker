@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AtcoderStalker
+
+  Sample SAM Template for AtcoderStalker
+
+Globals:
+  Function:
+    MemorySize: 512
+    Timeout: 900
+    Environment:
+      Variables:
+        ACCESS_TOKEN: !FindInMap [ EnvMap, !Ref Env, AccessToken ]
+        CHANNEL_SECRET: !FindInMap [ EnvMap, !Ref Env, ChannelSecret ]
+        LINE_USER_TABLE: !FindInMap [ EnvMap, !Ref Env, LineUserTable ]
+        STALKING_TABLE: !FindInMap [ EnvMap, !Ref Env, StalkingTable ]
+        SEQUENCE_TABLE: !FindInMap [ EnvMap, !Ref Env, SequenceTable ]
+        ATCODER_INFO_TABLE: !FindInMap [ EnvMap, !Ref Env, AtCoderInfoTable ]
+        PUSH_TIME_TABLE: !FindInMap [ EnvMap, !Ref Env, PushTimeTable ]
+        ADMIN_USER_ID: !FindInMap [ EnvMap, !Ref Env, AdminUserId ]
+
+Parameters:
+  Env:
+    Type: String
+    AllowedValues:
+      - prd
+      - stg
+    Default: stg
+
+Mappings:
+  EnvMap:
+    prd:
+      AccessToken: {LINE公式アカウントのAccess Token}
+      ChannelSecret: {LINE公式アカウントのChannel Secret}
+      LineUserTable: {DynamoDBのテーブル名}
+      StalkingTable: {DynamoDBのテーブル名}
+      SequenceTable: {DynamoDBのテーブル名}
+      AtCoderInfoTable: {DynamoDBのテーブル名}
+      PushTimeTable: {DynamoDBのテーブル名}
+      AdminUserId: "*******"
+    stg:
+      AccessToken: {LINE公式アカウントのAccess Token}
+      ChannelSecret: {LINE公式アカウントのChannel Secret}
+      LineUserTable: {DynamoDBのテーブル名}
+      StalkingTable: {DynamoDBのテーブル名}
+      SequenceTable: {DynamoDBのテーブル名}
+      AtCoderInfoTable: {DynamoDBのテーブル名}
+      PushTimeTable: {DynamoDBのテーブル名}
+      AdminUserId: "*******"
+
+Resources:
+  #HelloWorldFunction:
+  AtCoderStalkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/linebot/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        LineBot:
+          Type: Api
+          Properties:
+            Path: /
+            Method: post
+      Layers:
+        - !Ref AtCoderStalkerLayer
+  PushMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/pushmessage/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        NightScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 11 * * ? *)
+        MorningScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 0 * * ? *)
+      Layers:
+        - !Ref AtCoderStalkerLayer
+  AtCoderStalkerLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Layer description
+      ContentUri: layer/
+      CompatibleRuntimes:
+        - python3.8
+
+Outputs:
+  AtCoderStalkerApi:
+    Description: "API Gateway endpoint URL for AtCoderStalker function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/"
+  AtCoderStalkerFunction:
+    Description: "AtCoderStalker Lambda Function ARN"
+    Value: !GetAtt AtCoderStalkerFunction.Arn
+  AtCoderStalkerIamRole:
+    Description: "Implicit IAM Role created for AtCoderStalker function"
+    Value: !GetAtt AtCoderStalkerFunctionRole.Arn
