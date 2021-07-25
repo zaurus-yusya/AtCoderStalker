@@ -6,7 +6,9 @@ AtCoder上でライバルが問題を解いたら、そのことをあなたのL
 
 <img src="https://user-images.githubusercontent.com/54097621/125200226-0d90b280-e2a5-11eb-929d-62e71ac8f6ab.png" width=400px>
 
-以下のQRコードをLINEで読み込むことで登録できます。
+サービスURL:  https://line.me/R/ti/p/@381fkvdg
+
+以下のQRコードをLINEで読み込むことでも登録できます。
 
 <img src="https://user-images.githubusercontent.com/54097621/125200274-5183b780-e2a5-11eb-92d5-9643ceae3ca9.png" width=150px>
 
